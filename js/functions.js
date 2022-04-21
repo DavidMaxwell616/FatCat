@@ -16,7 +16,9 @@ function runTest(){
 
 function cropImage(src, rect, index)
 {
-    let dst = new cv.Mat();
+   cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+   cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
+   let dst = new cv.Mat();
     // You can try more different parameters
     dst = src.roi(rect);
     let dsize = new cv.Size(200, 50);
@@ -56,18 +58,14 @@ function getRectangle(src, index){
 function runFATCAT(src, index){
     let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    for(var j=0;j<src.cols;j++) 
+    var y = 25
+    for(var x=0;x<src.cols;x++) 
     {
-        var pixelValue = 0;
-      for (var i=0;i<src.rows;i++)
-      {
-        pixelValue += src.ucharPtr(j,i)[0];
-    }
+    var pixelValue = src.ucharPtr(x,y)[0];
     if(index==1)
-    console.log(pixelValue);       
-       var avg = pixelValue/src.rows;
-    let point1 = new cv.Point(j, src.rows - 1);
-    let point2 = new cv.Point(j + 1, src.rows - avg);
+    console.log(pixelValue);
+    let point1 = new cv.Point(x, src.rows - 1);
+    let point2 = new cv.Point(x + 1, src.rows - (pixelValue)/10);
     let color = new cv.Scalar(255, 255, 255);
     cv.rectangle(dst, point1, point2, color, cv.FILLED);
 
