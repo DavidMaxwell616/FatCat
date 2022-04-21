@@ -38,6 +38,7 @@ body {
 }
 #table {
     display: block;
+    width: 100%;
     border: 1px solid #000;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
@@ -131,6 +132,9 @@ table, td {
      vertical-align: bottom;
     border: 1px solid black;
    }
+table {
+    width: 100%;
+}
 th {
     font-family: 'Alfa Slab One', Arial;
     color: #DDD;

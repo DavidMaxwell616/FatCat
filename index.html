@@ -12,11 +12,9 @@
   <script type="text/javascript" src="js/functions.js"></script>
   <script src="js/opencv.js" type="text/javascript"></script>
 </head>
-
     <div id="title">
     FAT CAT
     </div>
-  
     <a class="button" onclick="runTest();">RUN TEST</a><br>
     <table id="testTable">
         <tr>
@@ -24,29 +22,19 @@
             <h1>TEST #</h1>
             </th>
           <th>
-          <h1>TEST IMAGES</h1>
+          <h1>TEST IMAGE</h1>
           </th>
           <th>
-            <h1>TEST STRIPS</h1>
+            <h1>TEST STRIP</h1>
           </th>
           <th>
             <h1>TEST ALGO</h1>
           </th>
           <th>
-            <h1>TEST RESULTS</h1>
+            <h1>TEST RESULT</h1>
           </th>
     </tr>
 </table>
-<div>
-  <div class="inputoutput">
-    <img id="imageSrc" width="500px" alt="No Image" />
-    <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
-  </div>
-  <div class="inputoutput">
-    <canvas id="canvasOutput" ></canvas>
-    <div class="caption">canvasOutput</div>
-  </div>
-</div>
 <script>
   loadData();
 </script>
