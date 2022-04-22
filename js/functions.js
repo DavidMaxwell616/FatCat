@@ -17,13 +17,13 @@ function runTest(){
 function cropImage(src, rect, index)
 {
    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-   cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
-   let dst = new cv.Mat();
-    // You can try more different parameters
+  // cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
+    let dst = new cv.Mat();
     dst = src.roi(rect);
-    let dsize = new cv.Size(200, 50);
+     let dsize = new cv.Size(200, 50);
     // You can try more different parameters
     cv.resize(dst, dst, dsize, 0, 0, cv.INTER_AREA);
+    cv.medianBlur(dst, dst, 15);
     cv.imshow('strip'+index, dst); // display the output to canvas
     src.delete();
     dst.delete();
@@ -60,16 +60,21 @@ function runFATCAT(src, index){
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
     var y = 25
     for(var x=0;x<src.cols;x++) 
-    {
-    var pixelValue = src.ucharPtr(x,y)[0];
-    if(index==1)
-    console.log(pixelValue);
-    let point1 = new cv.Point(x, src.rows - 1);
-    let point2 = new cv.Point(x + 1, src.rows - (pixelValue)/10);
+        {
+        var pixelValue = 0;
+        for(y=0; y<src.rows; y++)
+        {
+            pixelValue += src.ucharPtr(x,y)[0];
+        }
+    }
+    //let point1 = new cv.Point(x, src.rows - 1);
+    //let point2 = new cv.Point(x + 1, src.rows - (pixelValue)/10);
+    let point1 = new cv.Point(x,src.rows);
+    let point2 = new cv.Point(x+1,0);
     let color = new cv.Scalar(255, 255, 255);
     cv.rectangle(dst, point1, point2, color, cv.FILLED);
 
-}
+
     cv.imshow('algo'+index, dst); // display the output to canvas
 }
 
