@@ -1,7 +1,12 @@
 const NUM_TESTS = 18;
-var all_Point_XY = []
+var points = [[]];
+var rectX = 20;
+var rectY = 20;
+var rectWidth =65;
+var rectHeight =6;
+
 function runTest(){
-    var table = document.getElementById("testTable");
+     var table = document.getElementById("testTable");
     for (let index = 1; index <NUM_TESTS; index++) {
         var image = document.getElementById('image'+ index);
         var src = cv.imread(image);
@@ -11,22 +16,57 @@ function runTest(){
         image = document.getElementById('strip'+ index);
         src = cv.imread(image);
         runFATCAT(src, index);
+        showResults(index);
    }
 }
 
 function cropImage(src, rect, index)
 {
    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-  // cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
+ //  cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
     let dst = new cv.Mat();
     dst = src.roi(rect);
-     let dsize = new cv.Size(200, 50);
+    let dsize = new cv.Size(200, 50);
     // You can try more different parameters
     cv.resize(dst, dst, dsize, 0, 0, cv.INTER_AREA);
     cv.medianBlur(dst, dst, 15);
     cv.imshow('strip'+index, dst); // display the output to canvas
     src.delete();
     dst.delete();
+}
+
+const findMaxima = (arr = []) => {
+    let positions = []
+    let maximas = []
+    for (let i = 1; i < arr.length - 1; i++) {
+       if (arr[i] > arr[i - 1]) {
+          if (arr[i] > arr[i + 1]) {
+             positions.push(i)
+             maximas.push(arr[i])
+          } else if (arr[i] === arr[i + 1]) {
+             let temp = i
+             while (arr[i] === arr[temp]) i++
+             if (arr[temp] > arr[i]) {
+                positions.push(temp)
+                maximas.push(arr[temp])
+             }
+          }
+       }
+    }
+    return { maximas, positions };
+ };
+
+function showResults(index){
+    var cell = document.getElementById("results"+index);
+    testLineHeight = 1;
+   controlLineHeight = 1;
+   console.log(points[index]);
+
+    cell.innerHTML="RESULTS FOR STRIP "+index+":<br>" +
+    "Control Line Height: "+ controlLineHeight + "<br>" +
+    "Test Line Height: "+ testLineHeight + "<br>" +
+    "FAT CAT Ratio: "+ testLineHeight/controlLineHeight + "<br>" 
+
 }
 
 function getRectangle(src, index){
@@ -37,11 +77,6 @@ function getRectangle(src, index){
          let hierarchy = new cv.Mat();
          cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
          let cnt = contours.get(0);
-         if(!cnt) 
-         {
-             console.log('error');
-             return new rectangle(100,100,100,100);
-         }
          // You can try more different parameters
          let rect = cv.boundingRect(cnt);
          let contoursColor = new cv.Scalar(255, 255, 255);
@@ -52,58 +87,45 @@ function getRectangle(src, index){
          cv.rectangle(dst, point1, point2, rectangleColor, 2, cv.LINE_AA, 0);
          src.delete(); dst.delete(); contours.delete(); hierarchy.delete(); 
           cnt.delete();
+          if(rect.width==1){
+              rect.x = rectX;
+            rect.width = rectWidth;
+          }
+          if(rect.height ==1){
+            rect.height = rectHeight;
+            rect.Y = rectY;  
+        }
+        rect.x = 20;
+        rect.y = 20;
           return rect;
 
 }
+
 function runFATCAT(src, index){
     let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    var y = 25
-    for(var x=0;x<src.cols;x++) 
-        {
-        var pixelValue = 0;
-        for(y=0; y<src.rows; y++)
-        {
-            pixelValue += src.ucharPtr(x,y)[0];
-        }
-    }
-    //let point1 = new cv.Point(x, src.rows - 1);
-    //let point2 = new cv.Point(x + 1, src.rows - (pixelValue)/10);
-    let point1 = new cv.Point(x,src.rows);
-    let point2 = new cv.Point(x+1,0);
-    let color = new cv.Scalar(255, 255, 255);
+    points.push(index);
+    points[index] = [];
+     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    //cv.equalizeHist(src, dst);
+    //  cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
+    for(var x = 0; x < src.cols; x+=2)
+ {
+     var val = 0
+   for (let y = 0; y < src.rows; y++) {
+    val+=src.ucharPtr(y,x)[0];       
+   }
+    val = Math.floor(val/src.rows);
+    let point1 = new cv.Point(x,src.rows-(val/4));
+    let point2 = new cv.Point(x+1,src.rows);
+    let color = new cv.Scalar(255,255,255);
     cv.rectangle(dst, point1, point2, color, cv.FILLED);
-
-
-    cv.imshow('algo'+index, dst); // display the output to canvas
-}
-
-function createHistogram(src,index){
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    let srcVec = new cv.MatVector();
-    srcVec.push_back(src);
-    let accumulate = false;
-    let channels = [0];
-    let histSize = [256];
-    let ranges = [0, 255];
-    let hist = new cv.Mat();
-    let mask = new cv.Mat();
-    let color = new cv.Scalar(255, 255, 255);
-    let scale = 1;
-    //You can try more different parameters
-    cv.calcHist(srcVec, channels, mask, hist, histSize, ranges, accumulate);
-    let result = cv.minMaxLoc(hist, mask);
-    let max = result.maxVal;
-    let dst = new cv.Mat.zeros(src.rows, histSize[0] * scale, cv.CV_8UC3);
-    //draw histogram
-    for (let i = 0; i < histSize[0]; i++) {
-        let binVal = hist.data32F[i] * src.rows / max;
-        let point1 = new cv.Point(i * scale, src.rows - 1);
-        let point2 = new cv.Point((i + 1) * scale - 1, src.rows - binVal);
-        cv.rectangle(dst, point1, point2, color, cv.FILLED);
-    }
-   cv.imshow('algo'+index, dst); // display the output to canvas
-    src.delete(); dst.delete(); srcVec.delete(); mask.delete(); hist.delete();
+     points[index].push(x);
+    points[index][x] = [];
+    points[index][x].push(point1);
+   
+ }
+  cv.imshow('algo'+index, dst); 
+    
 }
 
 function loadData(){
@@ -122,7 +144,7 @@ function loadData(){
     cell2.innerHTML = '<img id=image'+ index + ' height ="50" width ="200" src="assets/images/'+ padIndex + '.bmp">';
     cell3.innerHTML = '<canvas id=strip'+ index + ' height ="50" width ="200" ></canvas>';
     cell4.innerHTML = '<canvas id=algo'+ index + ' height ="50" width ="200" ></canvas>';
-    cell5.innerHTML = '<canvas id=results'+ index + ' height ="50" width ="200" ></canvas>';
+    cell5.innerHTML = '<div id=results'+ index + ' height ="50" width ="200" ></div>';
     }
 
 }
