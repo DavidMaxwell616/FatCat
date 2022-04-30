@@ -1,10 +1,3 @@
-const NUM_TESTS = 18;
-var points = [[]];
-var rectX = 20;
-var rectY = 20;
-var rectWidth =65;
-var rectHeight =6;
-
 function runTest(){
      var table = document.getElementById("testTable");
     for (let index = 1; index <NUM_TESTS; index++) {
@@ -35,7 +28,7 @@ function cropImage(src, rect, index)
     dst.delete();
 }
 
-const findMaxima = (arr = []) => {
+function findMaxima(arr) {
     let positions = []
     let maximas = []
     for (let i = 1; i < arr.length - 1; i++) {
@@ -59,9 +52,9 @@ const findMaxima = (arr = []) => {
 function showResults(index){
     var cell = document.getElementById("results"+index);
     testLineHeight = 1;
-   controlLineHeight = 1;
-   console.log(points[index]);
-
+    controlLineHeight = 1;
+   var peaks = findMaxima(points[index]);
+   console.log(index, peaks);
     cell.innerHTML="RESULTS FOR STRIP "+index+":<br>" +
     "Control Line Height: "+ controlLineHeight + "<br>" +
     "Test Line Height: "+ testLineHeight + "<br>" +
