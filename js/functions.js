@@ -16,7 +16,7 @@ function runTest(){
 function cropImage(src, rect, index)
 {
    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
- //  cv.threshold(src, src, 110, 200, cv.THRESH_BINARY);
+  //cv.threshold(src, src, 90, 255, cv.THRESH_BINARY);
     let dst = new cv.Mat();
     dst = src.roi(rect);
     let dsize = new cv.Size(200, 50);
@@ -29,36 +29,55 @@ function cropImage(src, rect, index)
 }
 
 function findMaxima(arr) {
-    let positions = []
-    let maximas = []
-    for (let i = 1; i < arr.length - 1; i++) {
-       if (arr[i] > arr[i - 1]) {
-          if (arr[i] > arr[i + 1]) {
-             positions.push(i)
-             maximas.push(arr[i])
-          } else if (arr[i] === arr[i + 1]) {
-             let temp = i
-             while (arr[i] === arr[temp]) i++
-             if (arr[temp] > arr[i]) {
-                positions.push(temp)
-                maximas.push(arr[temp])
-             }
-          }
-       }
-    }
-    return { maximas, positions };
+    var push = true,
+    last = 0,
+    result = arr.reduce((r, v, i, a) => {
+        if (a[r[last]] === v) {                  // take latest index of series
+            r[last] = i;
+            return r;
+        }
+        if (a[i - 1] < v) {                      // look for new series
+            push = true;
+            return r;
+        }
+        if (a[i - 1] > v) {
+            if (push && a[i - 1] > a[r[last]]) { // prevent continuing minima
+                last = r.push(i) - 1;
+                push = false;
+            } else {
+                r[last] = i;
+            }
+        }
+        return r;
+    }, []);
+
+return result;
  };
+
+
+function GetEvenYValues(arr){
+var result = [];
+for (let i = 0; i < arr.length; i+=2) {
+   result.push(arr[i][0].y);
+}
+return result;
+}
 
 function showResults(index){
     var cell = document.getElementById("results"+index);
     testLineHeight = 1;
     controlLineHeight = 1;
-   var peaks = findMaxima(points[index]);
+    const filtered = GetEvenYValues(points[index]);
+   var peaks = findMaxima(filtered);
    console.log(index, peaks);
-    cell.innerHTML="RESULTS FOR STRIP "+index+":<br>" +
+   controlLineHeight = filtered[peaks[0]];
+   testLineHeight = filtered[peaks[1]];
+   var result = Math.round(testLineHeight/controlLineHeight* 100) / 100 +
+   ' ('+Math.round(testLineHeight/controlLineHeight* 100) +'%)';
+   cell.innerHTML="RESULTS FOR STRIP "+index+":<br>" +
     "Control Line Height: "+ controlLineHeight + "<br>" +
     "Test Line Height: "+ testLineHeight + "<br>" +
-    "FAT CAT Ratio: "+ testLineHeight/controlLineHeight + "<br>" 
+    "FAT CAT Ratio: "+ result + "<br>" 
 
 }
 
